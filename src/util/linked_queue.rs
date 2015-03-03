@@ -9,7 +9,7 @@ use std::time::Duration;
 /// The current implementation is based on a mutex and two condition variables.
 /// It is also mostly a placeholder until a lock-free version is implemented,
 /// so it has not been tuned for performance.
-pub struct LinkedQueue<T> {
+pub struct LinkedQueue<T: Send> {
     inner: Arc<QueueInner<T>>,
 }
 
@@ -112,7 +112,7 @@ impl<T: Send> Clone for LinkedQueue<T> {
 //  be of the kind understood by the GC.  We use the trick of
 //  linking a Node that has just been dequeued to itself.  Such a
 //  self-link implicitly means to advance to head.next.
-struct QueueInner<T> {
+struct QueueInner<T: Send> {
 
     // Maximum number of elements the queue can contain at one time
     capacity: usize,
@@ -305,7 +305,7 @@ impl<T: Send> Node<T> {
     }
 }
 
-struct NodePtr<T> {
+struct NodePtr<T: Send> {
     ptr: *mut Node<T>,
 }
 
