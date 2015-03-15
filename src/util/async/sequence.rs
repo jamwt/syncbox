@@ -85,6 +85,13 @@ struct Core<A: Async> {
     sender: Option<Sender<A::Value, A::Error>>,
 }
 
+#[unsafe_destructor]
+impl<A: Async> Drop for Core<A> {
+    fn drop(&mut self) {
+        debug!("DROPPING!");
+    }
+}
+
 struct Inner<A: Async>(Arc<UnsafeCell<Core<A>>>);
 
 impl<A: Async> Inner<A> {
@@ -133,7 +140,7 @@ impl<A: Async> Inner<A> {
 
                 self.state.swap(BUSY, Ordering::Release);
                 sender.send(val).receive(move |res| {
-                    debug!("Inner::send() - sender ready; res={:?}", res);
+                    debug!("Inner::send() - sender ready; res={:?}; self={:p}", res, self);
                     match res {
                         Ok(sender) => {
                             inner.send_ready(sender, i);
